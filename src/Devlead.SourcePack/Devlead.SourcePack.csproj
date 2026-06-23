@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon/devlead.sourcepack.png</PackageIcon>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>sourcepack;msbuild;nuget;source</PackageTags>
+    <PackageDescription>Opinionated MSBuild package for authoring source NuGet packages using standard SDK pack.</PackageDescription>
+    <RepositoryUrl>https://github.com/devlead/Devlead.SourcePack.git</RepositoryUrl>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="build\**\*" Pack="true" PackagePath="build\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="buildCrossTargeting\**\*" Pack="true" PackagePath="buildCrossTargeting\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\icon\devlead.sourcepack.png" Pack="true" PackagePath="icon\devlead.sourcepack.png" />
+    <None Include="..\..\icon\LICENSE.md" Pack="true" PackagePath="icon\LICENSE.md" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

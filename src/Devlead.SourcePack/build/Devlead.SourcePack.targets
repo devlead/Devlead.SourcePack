@@ -1,0 +1,76 @@
+<!--
+  Devlead.SourcePack.targets
+  Collects source files and build assets into NuGet packages using SDK pack.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <_SourcePackShouldPack>false</_SourcePackShouldPack>
+    <_SourcePackShouldPack Condition="$([System.String]::Copy(';$(SourcePackPackConfigurations);').Contains(';$(Configuration);'))">true</_SourcePackShouldPack>
+  </PropertyGroup>
+
+  <Target Name="_SourcePackCollectPackageFiles"
+          Condition="'$(EnableSourcePack)' == 'true' AND '$(TargetFramework)' != ''">
+
+    <MakeDir Condition="'$(_SourcePackShouldPack)' == 'true'"
+             Directories="$(IntermediateOutputPath)sourcepack-lib\" />
+
+    <WriteLinesToFile Condition="'$(_SourcePackShouldPack)' == 'true'"
+                      File="$(IntermediateOutputPath)sourcepack-lib\_._"
+                      Lines=""
+                      Overwrite="true" />
+
+    <ItemGroup Condition="'$(_SourcePackShouldPack)' == 'true'">
+      <TfmSpecificPackageFile Include="$(IntermediateOutputPath)sourcepack-lib\_._">
+        <PackagePath>lib/$(TargetFramework)/_._</PackagePath>
+        <BuildAction>None</BuildAction>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(SourcePackRoot)' != '' and '$(_SourcePackShouldPack)' == 'true'">
+      <_SourcePackExcludePatterns Include="@(SourcePackExclude->'$(MSBuildProjectDirectory)\%(Identity)')" />
+      <_SourcePackCompileCandidate Include="$(MSBuildProjectDirectory)\**\*.cs"
+                                  Exclude="@(_SourcePackExcludePatterns)" />
+      <_SourcePackCompileCandidate Remove="$(MSBuildProjectDirectory)\obj\**\*.cs" />
+      <_SourcePackCompileCandidate Remove="$(MSBuildProjectDirectory)\bin\**\*.cs" />
+      <_SourcePackCompileCandidate Remove="@(_SourcePackCompileCandidate)" Condition="$([System.String]::Copy('%(FullPath)').Contains('GlobalUsings'))" />
+      <_SourcePackCompileWithPath Include="@(_SourcePackCompileCandidate)">
+        <PackagePath>contentFiles/cs/$(TargetFramework)/$(SourcePackRoot)/$([MSBuild]::MakeRelative('$(MSBuildProjectDirectory)', '%(FullPath)').Replace('\', '/'))</PackagePath>
+        <BuildAction>Compile</BuildAction>
+        <CodeLanguage>cs</CodeLanguage>
+        <CopyToOutput>false</CopyToOutput>
+      </_SourcePackCompileWithPath>
+      <TfmSpecificPackageFile Include="@(_SourcePackCompileWithPath)" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(SourcePackIncludeGeneratedUsings)' == 'true' and '$(SourcePackRoot)' != '' and '$(_SourcePackShouldPack)' == 'true'">
+      <TfmSpecificPackageFile Include="$(IntermediateOutputPath)$(MSBuildProjectName).GlobalUsings.g.cs"
+                              Condition="Exists('$(IntermediateOutputPath)$(MSBuildProjectName).GlobalUsings.g.cs')">
+        <PackagePath>contentFiles/cs/$(TargetFramework)/$(SourcePackRoot)/$(MSBuildProjectName).GlobalUsings.g.cs</PackagePath>
+        <BuildAction>Compile</BuildAction>
+        <CodeLanguage>cs</CodeLanguage>
+        <CopyToOutput>false</CopyToOutput>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(_SourcePackShouldPack)' == 'true'">
+      <_SourcePackExplicitSource Include="@(SourcePackFile)" Condition="'%(SourcePackFile.Kind)' == 'Source' or '%(SourcePackFile.Kind)' == ''" />
+      <_SourcePackExplicitBuild Include="@(SourcePackFile)" Condition="'%(SourcePackFile.Kind)' == 'Build'" />
+      <_SourcePackExplicitSourceWithPath Include="@(_SourcePackExplicitSource)">
+        <PackagePath Condition="'%(_SourcePackExplicitSource.PackagePath)' != ''">%(_SourcePackExplicitSource.PackagePath)</PackagePath>
+        <PackagePath Condition="'%(_SourcePackExplicitSource.PackagePath)' == ''">contentFiles/cs/$(TargetFramework)/$(SourcePackRoot)/%(RecursiveDir)%(Filename)%(Extension)</PackagePath>
+        <BuildAction>Compile</BuildAction>
+        <CodeLanguage>cs</CodeLanguage>
+        <CopyToOutput>false</CopyToOutput>
+      </_SourcePackExplicitSourceWithPath>
+      <TfmSpecificPackageFile Include="@(_SourcePackExplicitSourceWithPath)" />
+      <TfmSpecificPackageFile Include="@(_SourcePackExplicitBuild)">
+        <PackagePath Condition="'%(_SourcePackExplicitBuild.PackagePath)' != ''">%(_SourcePackExplicitBuild.PackagePath)</PackagePath>
+        <PackagePath Condition="'%(_SourcePackExplicitBuild.PackagePath)' == ''">build/$(TargetFramework)/%(Filename)%(Extension)</PackagePath>
+        <BuildAction>None</BuildAction>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+
+  </Target>
+
+</Project>

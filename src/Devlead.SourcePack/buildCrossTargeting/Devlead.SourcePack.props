@@ -1,0 +1,9 @@
+<!--
+  Devlead.SourcePack.props (cross-targeting)
+  Shared defaults for multitarget projects; imported by the outer build.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Import Project="$(MSBuildThisFileDirectory)..\build\Devlead.SourcePack.props" />
+
+</Project>

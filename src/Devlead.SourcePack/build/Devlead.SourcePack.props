@@ -1,0 +1,40 @@
+<!--
+  Devlead.SourcePack.props
+  Opinionated defaults for authoring source NuGet packages via standard SDK pack.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup Condition="'$(EnableSourcePack)' != 'false'">
+    <EnableSourcePack>true</EnableSourcePack>
+    <IncludeBuildOutput Condition="'$(IncludeBuildOutput)' == ''">false</IncludeBuildOutput>
+    <IncludeSource Condition="'$(IncludeSource)' == ''">false</IncludeSource>
+    <PackCompile Condition="'$(PackCompile)' == ''">false</PackCompile>
+    <GenerateAssemblyInfo Condition="'$(GenerateAssemblyInfo)' == ''">false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute Condition="'$(GenerateTargetFrameworkAttribute)' == ''">false</GenerateTargetFrameworkAttribute>
+    <SourcePackPackConfigurations Condition="'$(SourcePackPackConfigurations)' == ''">Release</SourcePackPackConfigurations>
+    <SourcePackIncludeGeneratedUsings Condition="'$(SourcePackIncludeGeneratedUsings)' == ''">true</SourcePackIncludeGeneratedUsings>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <NoWarn>$(NoWarn);NU5109;NU5118;NU5127;NU5128</NoWarn>
+    <BuildInParallel>false</BuildInParallel>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_SourcePackCollectPackageFiles</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvailableItemName Include="SourcePackFile" />
+    <AvailableItemName Include="SourcePackExclude" />
+  </ItemGroup>
+
+  <ItemDefinitionGroup>
+    <Compile>
+      <Pack>false</Pack>
+    </Compile>
+    <SourcePackFile>
+      <Kind>Source</Kind>
+      <Visible>false</Visible>
+    </SourcePackFile>
+    <SourcePackExclude>
+      <Visible>false</Visible>
+    </SourcePackExclude>
+  </ItemDefinitionGroup>
+
+</Project>

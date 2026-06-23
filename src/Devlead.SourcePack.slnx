@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Devlead.SourcePack.Integration.Test/Devlead.SourcePack.Integration.Test.csproj" />
+  <Project Path="Devlead.SourcePack.Sample/Devlead.SourcePack.Sample.csproj" />
+  <Project Path="Devlead.SourcePack.Tests/Devlead.SourcePack.Tests.csproj" />
+  <Project Path="Devlead.SourcePack/Devlead.SourcePack.csproj" />
+</Solution>

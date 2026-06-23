@@ -1,0 +1,23 @@
+<!--
+  Devlead.SourcePack.targets (cross-targeting)
+  Adds package metadata files during outer-build pack.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Target Name="_SourcePackAddMetadataFiles"
+          BeforeTargets="_GetPackageFiles"
+          Condition="'$(EnableSourcePack)' == 'true'">
+
+    <ItemGroup>
+      <_SourcePackMetadata Include="@(SourcePackFile->WithMetadataValue('Kind', 'Metadata'))" />
+      <None Include="@(_SourcePackMetadata)"
+            Pack="true"
+            Visible="false">
+        <PackagePath Condition="'%(_SourcePackMetadata.PackagePath)' != ''">%(_SourcePackMetadata.PackagePath)</PackagePath>
+        <PackagePath Condition="'%(_SourcePackMetadata.PackagePath)' == ''">%(_SourcePackMetadata.Filename)%(Extension)</PackagePath>
+      </None>
+    </ItemGroup>
+
+  </Target>
+
+</Project>

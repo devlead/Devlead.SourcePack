@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <RootNamespace>Devlead.Sample</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <SourcePackRoot>Devlead/Sample</SourcePackRoot>
+    <PackageId>Devlead.SourcePack.Sample</PackageId>
+    <PackageDescription>Sample source package used to validate Devlead.SourcePack.</PackageDescription>
+    <DevleadSourcePackVersion Condition="'$(DevleadSourcePackVersion)' == ''">1.0.0</DevleadSourcePackVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Devlead.SourcePack" VersionOverride="$(DevleadSourcePackVersion)" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" VersionOverride="8.0.3" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" VersionOverride="9.0.10" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SourcePackFile Include="Devlead.SourcePack.Sample.props" Kind="Build" />
+    <SourcePackFile Include="Devlead.SourcePack.Sample.targets" Kind="Build" />
+    <SourcePackFile Include="../../README.md" Kind="Metadata" />
+  </ItemGroup>
+
+</Project>

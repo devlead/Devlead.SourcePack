@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <CentralPackageVersionOverrideEnabled>true</CentralPackageVersionOverrideEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Devlead.SourcePack.Sample" Version="1.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+    <PackageVersion Include="xunit.v3.mtp-v2" Version="3.2.2" />
+  </ItemGroup>
+</Project>

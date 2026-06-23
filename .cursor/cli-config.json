@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(git)", // Git read/write for commits and status
+      "Shell(dotnet)", // Build, test, pack, restore
+      "Shell(cake)", // Cake.Sdk build script
+      "Shell(gh)", // GitHub CLI for releases and PRs
+      "Shell(nuget)", // NuGet CLI when needed
+      "Shell(curl)", // Fetch remote resources
+      "Shell(where)", // Locate tools on PATH
+      "Write(**)", // Create and update project files
+      "Delete(**)" // Remove generated or obsolete files
+    ]
+  }
+}
