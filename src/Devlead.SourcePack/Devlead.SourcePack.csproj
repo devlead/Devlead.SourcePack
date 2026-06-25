@@ -19,6 +19,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Devlead.SourcePack.Tasks\Devlead.SourcePack.Tasks.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+  </ItemGroup>
+
+  <Target Name="_AddSourcePackTasksToPackage" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <None Include="..\Devlead.SourcePack.Tasks\bin\$(Configuration)\netstandard2.0\Devlead.SourcePack.Tasks.dll"
+            Pack="true"
+            PackagePath="tools\netstandard2.0\"
+            Visible="false" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
     <None Include="build\**\*" Pack="true" PackagePath="build\%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="buildCrossTargeting\**\*" Pack="true" PackagePath="buildCrossTargeting\%(RecursiveDir)%(Filename)%(Extension)" />
     <None Include="..\..\icon\devlead.sourcepack.png" Pack="true" PackagePath="icon\devlead.sourcepack.png" />
