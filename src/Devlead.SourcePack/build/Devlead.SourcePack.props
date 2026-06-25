@@ -22,6 +22,7 @@
   <ItemGroup>
     <AvailableItemName Include="SourcePackFile" />
     <AvailableItemName Include="SourcePackExclude" />
+    <AvailableItemName Include="SourcePackBundle" />
   </ItemGroup>
 
   <ItemDefinitionGroup>
@@ -35,6 +36,10 @@
     <SourcePackExclude>
       <Visible>false</Visible>
     </SourcePackExclude>
+    <SourcePackBundle>
+      <IncludeBuildAssets>true</IncludeBuildAssets>
+      <Visible>false</Visible>
+    </SourcePackBundle>
   </ItemDefinitionGroup>
 
 </Project>

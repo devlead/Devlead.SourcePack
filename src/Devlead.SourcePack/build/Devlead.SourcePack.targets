@@ -9,7 +9,41 @@
     <_SourcePackShouldPack Condition="$([System.String]::Copy(';$(SourcePackPackConfigurations);').Contains(';$(Configuration);'))">true</_SourcePackShouldPack>
   </PropertyGroup>
 
+  <UsingTask TaskName="Devlead.SourcePack.ResolveSourcePackBundles"
+             AssemblyFile="$(MSBuildThisFileDirectory)..\tools\netstandard2.0\Devlead.SourcePack.Tasks.dll" />
+
+  <Target Name="_SourcePackCollectBundlePackageFiles"
+          Condition="'$(EnableSourcePack)' == 'true' AND '@(SourcePackBundle)' != '' AND '$(TargetFramework)' != '' AND '$(_SourcePackShouldPack)' == 'true'">
+
+    <Devlead.SourcePack.ResolveSourcePackBundles Bundles="@(SourcePackBundle)"
+                                              PackageReferences="@(PackageReference)"
+                                              NuGetPackageRoot="$(NuGetPackageRoot)"
+                                              TargetFramework="$(TargetFramework)">
+      <Output TaskParameter="ResolvedBundles" ItemName="_SourcePackBundleResolved" />
+      <Output TaskParameter="BundledSources" ItemName="_SourcePackBundleSourceWithPath" />
+      <Output TaskParameter="BundledBuildAssets" ItemName="_SourcePackBundleBuildAsset" />
+    </Devlead.SourcePack.ResolveSourcePackBundles>
+
+    <Warning Condition="'%(_SourcePackBundleResolved.PkgRoot)' == ''"
+             Text="SourcePackBundle '%(Identity)' could not be resolved. Add GeneratePathProperty=&quot;true&quot; to the matching PackageReference and ensure the package is restored." />
+
+    <ItemGroup>
+      <_SourcePackBundleSourceWithPath Update="@(_SourcePackBundleSourceWithPath)">
+        <BuildAction>Compile</BuildAction>
+        <CodeLanguage>cs</CodeLanguage>
+        <CopyToOutput>false</CopyToOutput>
+      </_SourcePackBundleSourceWithPath>
+      <TfmSpecificPackageFile Include="@(_SourcePackBundleSourceWithPath)" />
+      <TfmSpecificPackageFile Include="@(_SourcePackBundleBuildAsset)">
+        <PackagePath>%(_SourcePackBundleBuildAsset.PackagePath)</PackagePath>
+        <BuildAction>None</BuildAction>
+      </TfmSpecificPackageFile>
+    </ItemGroup>
+
+  </Target>
+
   <Target Name="_SourcePackCollectPackageFiles"
+          DependsOnTargets="_SourcePackCollectBundlePackageFiles"
           Condition="'$(EnableSourcePack)' == 'true' AND '$(TargetFramework)' != ''">
 
     <MakeDir Condition="'$(_SourcePackShouldPack)' == 'true'"
