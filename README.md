@@ -6,6 +6,7 @@ Opinionated MSBuild package for authoring **source NuGet packages** using standa
 
 - Ships `.cs` files under `contentFiles/cs/{tfm}/...` with `BuildAction=Compile`
 - Optional `build/{tfm}/*.props` and `*.targets` via `SourcePackFile`
+- Optional `SourcePackBundle` for meta-packages that re-export dependency source/build assets
 - Per-target-framework dependencies from plain `PackageReference` items
 - No `lib/` output (`IncludeBuildOutput=false` by default)
 - Works with class libraries, console apps, and Azure Functions source projects
@@ -56,6 +57,33 @@ dotnet pack -c Release -- /m:1
 | `SourcePackRoot`                   | *(required for auto sources)*   | Root folder under `contentFiles/cs/{tfm}/`         |
 | `SourcePackPackConfigurations`     | `Release`                       | Configurations that pack sources                   |
 | `SourcePackIncludeGeneratedUsings` | `true`                          | Pack `*.GlobalUsings.g.cs` from `obj/`             |
+
+## SourcePackBundle
+
+Re-export source and build assets from a restored dependency package into your nupkg (meta-packages / vendoring).
+
+Requires `GeneratePathProperty="true"` on the matching `PackageReference`:
+
+```xml
+<PackageReference Include="Devlead.SourcePack.Sample"
+                 PrivateAssets="all"
+                 GeneratePathProperty="true"
+                 Pack="false" />
+
+<SourcePackBundle Include="Devlead.SourcePack.Sample"
+                  PackagePathPrefix="Devlead/Bundled" />
+```
+
+| Metadata              | Default | Description                                                       |
+|-----------------------|---------|-------------------------------------------------------------------|
+| `PackagePathPrefix`   | *(empty)* | Prefix under `contentFiles/cs/{tfm}/` for bundled `.cs` files |
+| `IncludeBuildAssets`  | `true`  | Copy `build/{tfm}/*.props` and `*.targets` from the dependency    |
+| `PackagePathProperty` | `Pkg{Id}` | Override the `Pkg...` MSBuild property name (rarely needed)   |
+
+Example output paths when bundling `Devlead.SourcePack.Sample` with prefix `Devlead/Bundled`:
+
+- `contentFiles/cs/net8.0/Devlead/Bundled/Devlead/Sample/SampleService.cs`
+- `build/net8.0/Devlead.SourcePack.Sample.props`
 
 ## SourcePackFile kinds
 

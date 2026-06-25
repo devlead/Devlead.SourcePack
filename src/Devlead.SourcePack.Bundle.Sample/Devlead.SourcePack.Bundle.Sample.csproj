@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <RootNamespace>Devlead.Bundle</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <SourcePackRoot>Devlead/Bundle</SourcePackRoot>
+    <SourcePackIncludeGeneratedUsings>false</SourcePackIncludeGeneratedUsings>
+    <PackageId>Devlead.SourcePack.Bundle.Sample</PackageId>
+    <PackageDescription>Sample source package that bundles Devlead.SourcePack.Sample via SourcePackBundle.</PackageDescription>
+    <DevleadSourcePackVersion Condition="'$(DevleadSourcePackVersion)' == ''">1.0.0</DevleadSourcePackVersion>
+    <DevleadSourcePackSampleVersion Condition="'$(DevleadSourcePackSampleVersion)' == ''">1.0.0</DevleadSourcePackSampleVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Devlead.SourcePack" VersionOverride="$(DevleadSourcePackVersion)" PrivateAssets="all" />
+    <PackageReference Include="Devlead.SourcePack.Sample"
+                      VersionOverride="$(DevleadSourcePackSampleVersion)"
+                      PrivateAssets="all"
+                      GeneratePathProperty="true"
+                      Pack="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SourcePackBundle Include="Devlead.SourcePack.Sample" PackagePathPrefix="Devlead/Bundled" />
+  </ItemGroup>
+
+</Project>

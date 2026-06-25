@@ -82,6 +82,7 @@ Task("Clean")
         static (context, data) => {
             foreach (var project in context.GetFiles(data.ProjectRoot.FullPath + "/**/*.csproj")
                 .Where(path => !path.FullPath.Contains("Devlead.SourcePack.Sample", StringComparison.OrdinalIgnoreCase)
+                            && !path.FullPath.Contains("Devlead.SourcePack.Bundle.Sample", StringComparison.OrdinalIgnoreCase)
                             && !path.FullPath.Contains("Devlead.SourcePack.Integration.Test", StringComparison.OrdinalIgnoreCase)))
             {
                 context.DotNetRestore(
@@ -119,8 +120,10 @@ Task("Clean")
     .DoesForEach<BuildData, FilePath>(
         static (data, context) => context.GetFiles(data.ProjectRoot.FullPath + "/**/*.csproj")
                                     .Where(path => !path.FullPath.Contains("Devlead.SourcePack.Sample", StringComparison.OrdinalIgnoreCase)
+                                                && !path.FullPath.Contains("Devlead.SourcePack.Bundle.Sample", StringComparison.OrdinalIgnoreCase)
                                                 && !path.FullPath.Contains("Devlead.SourcePack.Integration.Test", StringComparison.OrdinalIgnoreCase))
-                                    .OrderBy(path => path.FullPath.EndsWith("Devlead.SourcePack.csproj", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                                    .OrderBy(path => path.FullPath.EndsWith("Devlead.SourcePack.Tasks.csproj", StringComparison.OrdinalIgnoreCase) ? 0
+                                                : path.FullPath.EndsWith("Devlead.SourcePack.csproj", StringComparison.OrdinalIgnoreCase) ? 1 : 2)
                                     .ThenBy(path => path.FullPath, StringComparer.OrdinalIgnoreCase),
         static (data, item, context) => context.DotNetBuild(
             item.FullPath,
