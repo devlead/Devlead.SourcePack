@@ -18,6 +18,8 @@
     <Devlead.SourcePack.ResolveSourcePackBundles Bundles="@(SourcePackBundle)"
                                               PackageReferences="@(PackageReference)"
                                               NuGetPackageRoot="$(NuGetPackageRoot)"
+                                              NuGetPackageFolders="$(NuGetPackageFolders)"
+                                              ProjectAssetsFile="$(ProjectAssetsFile)"
                                               TargetFramework="$(TargetFramework)">
       <Output TaskParameter="ResolvedBundles" ItemName="_SourcePackBundleResolved" />
       <Output TaskParameter="BundledSources" ItemName="_SourcePackBundleSourceWithPath" />
@@ -25,7 +27,7 @@
     </Devlead.SourcePack.ResolveSourcePackBundles>
 
     <Warning Condition="'%(_SourcePackBundleResolved.PkgRoot)' == ''"
-             Text="SourcePackBundle '%(Identity)' could not be resolved. Add GeneratePathProperty=&quot;true&quot; to the matching PackageReference and ensure the package is restored." />
+             Text="SourcePackBundle '%(Identity)' could not be resolved. Ensure the package is restored and listed in project.assets.json, or add GeneratePathProperty=&quot;true&quot; to the matching PackageReference." />
 
     <ItemGroup>
       <_SourcePackBundleSourceWithPath Update="@(_SourcePackBundleSourceWithPath)">

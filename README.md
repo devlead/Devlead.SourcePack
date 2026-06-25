@@ -62,7 +62,7 @@ dotnet pack -c Release -- /m:1
 
 Re-export source and build assets from a restored dependency package into your nupkg (meta-packages / vendoring).
 
-Requires `GeneratePathProperty="true"` on the matching `PackageReference`:
+Add a matching `PackageReference` (with `GeneratePathProperty="true"` recommended). Bundle paths are resolved from `project.assets.json`, so central package management works without `Version` on the reference:
 
 ```xml
 <PackageReference Include="Devlead.SourcePack.Sample"

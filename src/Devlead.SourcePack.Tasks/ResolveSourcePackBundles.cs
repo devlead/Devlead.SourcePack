@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -47,6 +48,16 @@ public sealed class ResolveSourcePackBundles : Task
     /// Gets or sets the NuGet global packages folder.
     /// </summary>
     public string NuGetPackageRoot { get; set; }
+
+    /// <summary>
+    /// Gets or sets the semicolon-separated NuGet package folders from restore.
+    /// </summary>
+    public string NuGetPackageFolders { get; set; }
+
+    /// <summary>
+    /// Gets or sets the path to <c>project.assets.json</c> used to resolve package paths with central package management.
+    /// </summary>
+    public string ProjectAssetsFile { get; set; }
 
     /// <summary>
     /// Gets or sets package references used to resolve bundle versions.
@@ -142,8 +153,14 @@ public sealed class ResolveSourcePackBundles : Task
 
     private string ResolvePackageRoot(string identity, string pathProperty)
     {
+        var assetsRoot = ResolvePackageRootFromProjectAssets(identity);
+        if (!string.IsNullOrWhiteSpace(assetsRoot))
+        {
+            return assetsRoot;
+        }
+
         string propertyValue;
-        if (TryGetGlobalProperty(pathProperty, out propertyValue) && !string.IsNullOrWhiteSpace(propertyValue))
+        if (TryGetEvaluatedProperty(pathProperty, out propertyValue) && !string.IsNullOrWhiteSpace(propertyValue))
         {
             return propertyValue;
         }
@@ -190,7 +207,84 @@ public sealed class ResolveSourcePackBundles : Task
         return string.Empty;
     }
 
-    private bool TryGetGlobalProperty(string propertyName, out string value)
+    private string ResolvePackageRootFromProjectAssets(string identity)
+    {
+        if (string.IsNullOrWhiteSpace(ProjectAssetsFile) || !File.Exists(ProjectAssetsFile))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            using (var document = JsonDocument.Parse(File.ReadAllText(ProjectAssetsFile)))
+            {
+                if (!document.RootElement.TryGetProperty("libraries", out var libraries))
+                {
+                    return string.Empty;
+                }
+
+                var packageRootBase = ResolvePackageRootBase();
+                foreach (var library in libraries.EnumerateObject())
+                {
+                    if (!library.Name.StartsWith(identity + "/", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (!library.Value.TryGetProperty("path", out var pathElement))
+                    {
+                        continue;
+                    }
+
+                    var relativePath = pathElement.GetString();
+                    if (string.IsNullOrWhiteSpace(relativePath))
+                    {
+                        continue;
+                    }
+
+                    var fullPath = Path.Combine(
+                        packageRootBase,
+                        relativePath.Replace('/', Path.DirectorySeparatorChar));
+                    if (Directory.Exists(fullPath))
+                    {
+                        return fullPath;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.LogWarning("Failed to read project assets for SourcePackBundle '{0}': {1}", identity, ex.Message);
+        }
+
+        return string.Empty;
+    }
+
+    private string ResolvePackageRootBase()
+    {
+        if (!string.IsNullOrWhiteSpace(NuGetPackageRoot))
+        {
+            return NuGetPackageRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        }
+
+        if (!string.IsNullOrWhiteSpace(NuGetPackageFolders))
+        {
+            var firstFolder = NuGetPackageFolders
+                .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(firstFolder))
+            {
+                return firstFolder.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            }
+        }
+
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            ".nuget",
+            "packages");
+    }
+
+    private bool TryGetEvaluatedProperty(string propertyName, out string value)
     {
         value = string.Empty;
         if (BuildEngine == null)
@@ -215,7 +309,7 @@ public sealed class ResolveSourcePackBundles : Task
             if ((bool)method.Invoke(BuildEngine, args))
             {
                 value = args[1] as string ?? string.Empty;
-                return true;
+                return !string.IsNullOrWhiteSpace(value);
             }
 
             return false;
