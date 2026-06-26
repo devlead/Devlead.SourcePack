@@ -8,7 +8,7 @@
     <SourcePackIncludeGeneratedUsings>false</SourcePackIncludeGeneratedUsings>
     <PackageId>Devlead.SourcePack.Bundle.Sample</PackageId>
     <PackageDescription>Sample source package that bundles Devlead.SourcePack.Sample via SourcePackBundle.</PackageDescription>
-    <DevleadSourcePackVersion Condition="'$(DevleadSourcePackVersion)' == ''">1.0.0</DevleadSourcePackVersion>
+    <DevleadSourcePackVersion Condition="'$(DevleadSourcePackVersion)' == ''">2026.6.25.12</DevleadSourcePackVersion>
     <DevleadSourcePackSampleVersion Condition="'$(DevleadSourcePackSampleVersion)' == ''">1.0.0</DevleadSourcePackSampleVersion>
   </PropertyGroup>
 
