@@ -13,6 +13,7 @@
     <GenerateTargetFrameworkAttribute Condition="'$(GenerateTargetFrameworkAttribute)' == ''">false</GenerateTargetFrameworkAttribute>
     <SourcePackPackConfigurations Condition="'$(SourcePackPackConfigurations)' == ''">Release</SourcePackPackConfigurations>
     <SourcePackIncludeGeneratedUsings Condition="'$(SourcePackIncludeGeneratedUsings)' == ''">true</SourcePackIncludeGeneratedUsings>
+    <SourcePackFlowBuildAssets Condition="'$(SourcePackFlowBuildAssets)' == ''">true</SourcePackFlowBuildAssets>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <NoWarn>$(NoWarn);NU5109;NU5118;NU5127;NU5128</NoWarn>
     <BuildInParallel>false</BuildInParallel>
