@@ -29,7 +29,27 @@ public sealed class SourcePackLayoutTests
         Assert.Contains(entries, path => path.Equals("build/net10.0/Devlead.SourcePack.Sample.targets", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("README.md", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(entries, path => path.Contains("/obj/", StringComparison.OrdinalIgnoreCase));
-        Assert.DoesNotContain(entries, path => path.StartsWith("lib/", StringComparison.OrdinalIgnoreCase) && path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(entries, path => path.StartsWith("lib/", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Packed dependencies flow build and analyzer assets to consumers (no exclude attribute).
+    /// </summary>
+    [Fact]
+    public void Pack_sample_nuspec_dependencies_flow_build_assets()
+    {
+        var output = PackSamplePackage();
+        var nuspecPath = ExtractNuspec(output);
+        var document = XDocument.Load(nuspecPath);
+        XNamespace ns = document.Root?.Name.Namespace ?? XNamespace.None;
+
+        var excludedDependencies = document
+            .Descendants(ns + "dependency")
+            .Where(dependency => dependency.Attribute("exclude") != null)
+            .Select(dependency => dependency.Attribute("id")!.Value)
+            .ToList();
+
+        Assert.Empty(excludedDependencies);
     }
 
     /// <summary>

@@ -57,6 +57,7 @@ dotnet pack -c Release -- /m:1
 | `SourcePackRoot`                   | *(required for auto sources)*   | Root folder under `contentFiles/cs/{tfm}/`         |
 | `SourcePackPackConfigurations`     | `Release`                       | Configurations that pack sources                   |
 | `SourcePackIncludeGeneratedUsings` | `true`                          | Pack `*.GlobalUsings.g.cs` from `obj/`             |
+| `SourcePackFlowBuildAssets`        | `true`                          | Before pack, sets `suppressParent=None` on packed dependencies so the nuspec does not get `exclude="Build,Analyzers"`. Set `false` to keep SDK pack defaults. |
 
 ## SourcePackBundle
 

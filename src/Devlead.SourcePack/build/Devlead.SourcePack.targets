@@ -12,6 +12,22 @@
   <UsingTask TaskName="Devlead.SourcePack.ResolveSourcePackBundles"
              AssemblyFile="$(MSBuildThisFileDirectory)..\tools\netstandard2.0\Devlead.SourcePack.Tasks.dll" />
 
+  <UsingTask TaskName="Devlead.SourcePack.PatchSourcePackDependencyFlow"
+             AssemblyFile="$(MSBuildThisFileDirectory)..\tools\netstandard2.0\Devlead.SourcePack.Tasks.dll" />
+
+  <Target Name="_SourcePackPatchPackDependencyFlow"
+          BeforeTargets="GenerateNuspec"
+          Condition="'$(EnableSourcePack)' == 'true' AND '$(SourcePackFlowBuildAssets)' == 'true' AND '$(IsPackable)' == 'true'">
+
+    <PropertyGroup>
+      <_SourcePackDgspecFile Condition="'$(_SourcePackDgspecFile)' == ''">$(MSBuildProjectExtensionsPath)$(MSBuildProjectFile).nuget.dgspec.json</_SourcePackDgspecFile>
+    </PropertyGroup>
+
+    <Devlead.SourcePack.PatchSourcePackDependencyFlow ProjectAssetsFile="$(ProjectAssetsFile)"
+                                                    DgspecFile="$(_SourcePackDgspecFile)" />
+
+  </Target>
+
   <Target Name="_SourcePackCollectBundlePackageFiles"
           Condition="'$(EnableSourcePack)' == 'true' AND '@(SourcePackBundle)' != '' AND '$(TargetFramework)' != '' AND '$(_SourcePackShouldPack)' == 'true'">
 
@@ -47,21 +63,6 @@
   <Target Name="_SourcePackCollectPackageFiles"
           DependsOnTargets="_SourcePackCollectBundlePackageFiles"
           Condition="'$(EnableSourcePack)' == 'true' AND '$(TargetFramework)' != ''">
-
-    <MakeDir Condition="'$(_SourcePackShouldPack)' == 'true'"
-             Directories="$(IntermediateOutputPath)sourcepack-lib\" />
-
-    <WriteLinesToFile Condition="'$(_SourcePackShouldPack)' == 'true'"
-                      File="$(IntermediateOutputPath)sourcepack-lib\_._"
-                      Lines=""
-                      Overwrite="true" />
-
-    <ItemGroup Condition="'$(_SourcePackShouldPack)' == 'true'">
-      <TfmSpecificPackageFile Include="$(IntermediateOutputPath)sourcepack-lib\_._">
-        <PackagePath>lib/$(TargetFramework)/_._</PackagePath>
-        <BuildAction>None</BuildAction>
-      </TfmSpecificPackageFile>
-    </ItemGroup>
 
     <ItemGroup Condition="'$(SourcePackRoot)' != '' and '$(_SourcePackShouldPack)' == 'true'">
       <_SourcePackExcludePatterns Include="@(SourcePackExclude->'$(MSBuildProjectDirectory)\%(Identity)')" />
