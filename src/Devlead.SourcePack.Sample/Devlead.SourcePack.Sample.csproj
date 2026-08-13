@@ -7,7 +7,7 @@
     <SourcePackRoot>Devlead/Sample</SourcePackRoot>
     <PackageId>Devlead.SourcePack.Sample</PackageId>
     <PackageDescription>Sample source package used to validate Devlead.SourcePack.</PackageDescription>
-    <DevleadSourcePackVersion Condition="'$(DevleadSourcePackVersion)' == ''">2026.6.29.20</DevleadSourcePackVersion>
+    <DevleadSourcePackVersion Condition="'$(DevleadSourcePackVersion)' == ''">2026.7.14.33</DevleadSourcePackVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" VersionOverride="9.0.18" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" VersionOverride="9.0.19" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
