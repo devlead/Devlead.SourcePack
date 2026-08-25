@@ -43,6 +43,7 @@ Setup(
 
         var projectPath = projectRoot.CombineWithFilePath("Devlead.SourcePack/Devlead.SourcePack.csproj");
         var sampleProjectPath = projectRoot.CombineWithFilePath("Devlead.SourcePack.Sample/Devlead.SourcePack.Sample.csproj");
+        var sampleAdvancedProjectPath = projectRoot.CombineWithFilePath("Devlead.SourcePack.Sample.Advanced/Devlead.SourcePack.Sample.Advanced.csproj");
 
         return new BuildData(
             version,
@@ -52,6 +53,7 @@ Setup(
             projectRoot,
             projectPath,
             sampleProjectPath,
+            sampleAdvancedProjectPath,
             new DotNetMSBuildSettings()
                 .SetConfiguration("Release")
                 .SetVersion(version)
@@ -166,7 +168,8 @@ Task("Clean")
                 data.SampleProjectPath.FullPath,
                 new DotNetRestoreSettings
                 {
-                    MSBuildSettings = data.MSBuildSettings
+                    MSBuildSettings = new DotNetMSBuildSettings()
+                        .SetConfiguration("Release")
                         .WithProperty("RestoreAdditionalProjectSources", data.NuGetOutputPath.FullPath)
                         .WithProperty("DevleadSourcePackVersion", data.Version)
                 }
@@ -174,6 +177,36 @@ Task("Clean")
 
             context.DotNetPack(
                 data.SampleProjectPath.FullPath,
+                new DotNetPackSettings
+                {
+                    NoRestore = true,
+                    OutputDirectory = data.NuGetOutputPath,
+                    ArgumentCustomization = args => args.Append("/m:1"),
+                    MSBuildSettings = new DotNetMSBuildSettings()
+                        .SetConfiguration("Release")
+                        .WithProperty("DevleadSourcePackVersion", data.Version)
+                        .WithProperty("PackageVersion", data.Version)
+                        .WithProperty("TreatWarningsAsErrors", "false")
+                }
+            );
+        }
+    )
+.Then("Pack-Sample-Advanced")
+    .Does<BuildData>(
+        static (context, data) => {
+            context.DotNetRestore(
+                data.SampleAdvancedProjectPath.FullPath,
+                new DotNetRestoreSettings
+                {
+                    MSBuildSettings = new DotNetMSBuildSettings()
+                        .SetConfiguration("Release")
+                        .WithProperty("RestoreAdditionalProjectSources", data.NuGetOutputPath.FullPath)
+                        .WithProperty("DevleadSourcePackVersion", data.Version)
+                }
+            );
+
+            context.DotNetPack(
+                data.SampleAdvancedProjectPath.FullPath,
                 new DotNetPackSettings
                 {
                     NoRestore = true,

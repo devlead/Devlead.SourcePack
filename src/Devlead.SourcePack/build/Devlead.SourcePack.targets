@@ -15,6 +15,49 @@
   <UsingTask TaskName="Devlead.SourcePack.PatchSourcePackDependencyFlow"
              AssemblyFile="$(MSBuildThisFileDirectory)..\tools\netstandard2.0\Devlead.SourcePack.Tasks.dll" />
 
+  <UsingTask TaskName="Devlead.SourcePack.PromoteSourcePackBundleDependencies"
+             AssemblyFile="$(MSBuildThisFileDirectory)..\tools\netstandard2.0\Devlead.SourcePack.Tasks.dll" />
+
+  <!--
+    NuGet restore does not reliably pick up PackageReferences synthesized from a package's
+    .targets. Authors must declare a matching PackageReference (version via CPM or Version).
+    Apply vendoring defaults before pack so the bundled id is omitted from the nuspec.
+  -->
+  <Target Name="_SourcePackApplyBundlePackageReferenceDefaults"
+          BeforeTargets="_SourcePackPromoteBundleDependencies;GenerateNuspec"
+          Condition="'$(EnableSourcePack)' == 'true' AND '@(SourcePackBundle)' != ''">
+    <ItemGroup>
+      <PackageReference Update="%(SourcePackBundle.Identity)">
+        <PrivateAssets>all</PrivateAssets>
+        <GeneratePathProperty>true</GeneratePathProperty>
+        <Pack>false</Pack>
+      </PackageReference>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_SourcePackPromoteBundleDependencies"
+          BeforeTargets="_SourcePackPatchPackDependencyFlow;GenerateNuspec"
+          Condition="'$(EnableSourcePack)' == 'true' AND '$(IsPackable)' == 'true' AND '@(SourcePackBundle)' != ''">
+
+    <PropertyGroup>
+      <_SourcePackDgspecFile Condition="'$(_SourcePackDgspecFile)' == ''">$(MSBuildProjectExtensionsPath)$(MSBuildProjectFile).nuget.dgspec.json</_SourcePackDgspecFile>
+    </PropertyGroup>
+
+    <Devlead.SourcePack.PromoteSourcePackBundleDependencies Bundles="@(SourcePackBundle)"
+                                                          ProjectAssetsFile="$(ProjectAssetsFile)"
+                                                          DgspecFile="$(_SourcePackDgspecFile)"
+                                                          NuGetPackageRoot="$(NuGetPackageRoot)"
+                                                          NuGetPackageFolders="$(NuGetPackageFolders)">
+      <Output TaskParameter="PromotedPackageReferences" ItemName="_SourcePackPromotedPackageReference" />
+    </Devlead.SourcePack.PromoteSourcePackBundleDependencies>
+
+    <ItemGroup>
+      <_SourcePackPromotedPackageReference Remove="@(PackageReference)" />
+      <PackageReference Include="@(_SourcePackPromotedPackageReference)" />
+    </ItemGroup>
+
+  </Target>
+
   <Target Name="_SourcePackPatchPackDependencyFlow"
           BeforeTargets="GenerateNuspec"
           Condition="'$(EnableSourcePack)' == 'true' AND '$(SourcePackFlowBuildAssets)' == 'true' AND '$(IsPackable)' == 'true'">

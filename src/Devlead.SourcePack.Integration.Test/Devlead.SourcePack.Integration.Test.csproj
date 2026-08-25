@@ -8,6 +8,7 @@
     <RootNamespace>Devlead.SourcePack.Integration.Test</RootNamespace>
     <Configurations>Debug;Release;IntegrationTest</Configurations>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <UseDefaultProgram>false</UseDefaultProgram>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'IntegrationTest'">
@@ -20,6 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Devlead.SourcePack.Sample" VersionOverride="$(SamplePackageVersion)" Condition="'$(Configuration)' == 'IntegrationTest'" />
+    <PackageReference Include="Devlead.SourcePack.Sample.Advanced" VersionOverride="$(SamplePackageVersion)" Condition="'$(Configuration)' == 'IntegrationTest'" />
     <PackageReference Include="xunit.v3.mtp-v2" />
   </ItemGroup>
 
