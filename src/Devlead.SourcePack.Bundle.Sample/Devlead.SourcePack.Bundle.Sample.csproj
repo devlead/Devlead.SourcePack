@@ -14,11 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Devlead.SourcePack" VersionOverride="$(DevleadSourcePackVersion)" PrivateAssets="all" />
-    <PackageReference Include="Devlead.SourcePack.Sample"
-                      VersionOverride="$(DevleadSourcePackSampleVersion)"
-                      PrivateAssets="all"
-                      GeneratePathProperty="true"
-                      Pack="false" />
+    <PackageReference Include="Devlead.SourcePack.Sample" VersionOverride="$(DevleadSourcePackSampleVersion)" Pack="false" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
