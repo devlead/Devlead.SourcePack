@@ -39,6 +39,7 @@
     </SourcePackExclude>
     <SourcePackBundle>
       <IncludeBuildAssets>true</IncludeBuildAssets>
+      <PromoteDependencies>true</PromoteDependencies>
       <Visible>false</Visible>
     </SourcePackBundle>
   </ItemDefinitionGroup>

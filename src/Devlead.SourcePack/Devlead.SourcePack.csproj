@@ -25,6 +25,13 @@
     </ProjectReference>
   </ItemGroup>
 
+  <Target Name="_BuildSourcePackTasks"
+          BeforeTargets="_AddSourcePackTasksToPackage">
+    <MSBuild Projects="..\Devlead.SourcePack.Tasks\Devlead.SourcePack.Tasks.csproj"
+             Targets="Restore;Build"
+             Properties="Configuration=$(Configuration);BuildProjectReferences=false;NoBuild=false;GeneratePackageOnBuild=false" />
+  </Target>
+
   <Target Name="_AddSourcePackTasksToPackage" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
       <None Include="..\Devlead.SourcePack.Tasks\bin\$(Configuration)\netstandard2.0\Devlead.SourcePack.Tasks.dll"

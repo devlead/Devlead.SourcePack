@@ -9,6 +9,7 @@ public record BuildData(
     DirectoryPath ProjectRoot,
     FilePath ProjectPath,
     FilePath SampleProjectPath,
+    FilePath SampleAdvancedProjectPath,
     DotNetMSBuildSettings MSBuildSettings,
     DirectoryPath ArtifactsPath,
     DirectoryPath OutputPath
@@ -66,7 +67,11 @@ public record BuildData(
     /// <param name="packagePath">Path to the nupkg file.</param>
     /// <returns><c>true</c> when the package should be pushed or attached to a release.</returns>
     public bool IsPublishablePackage(FilePath packagePath)
-        => !packagePath.GetFilename().FullPath.StartsWith("Devlead.SourcePack.Sample.", StringComparison.OrdinalIgnoreCase);
+    {
+        var fileName = packagePath.GetFilename().FullPath;
+        return !fileName.StartsWith("Devlead.SourcePack.Sample.", StringComparison.OrdinalIgnoreCase)
+            && !fileName.StartsWith("Devlead.SourcePack.Bundle.Sample.", StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 internal record ExtensionHelper(Func<string, CakeTaskBuilder> TaskCreate, Func<CakeReport> Run);

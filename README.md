@@ -6,8 +6,8 @@ Opinionated MSBuild package for authoring **source NuGet packages** using standa
 
 - Ships `.cs` files under `contentFiles/cs/{tfm}/...` with `BuildAction=Compile`
 - Optional `build/{tfm}/*.props` and `*.targets` via `SourcePackFile`
-- Optional `SourcePackBundle` for meta-packages that re-export dependency source/build assets
-- Per-target-framework dependencies from plain `PackageReference` items
+- Optional `SourcePackBundle` for meta-packages that re-export dependency source/build assets and promote that package's **direct** NuGet dependencies into the packed nuspec
+- Per-target-framework dependencies from plain `PackageReference` items (plus promoted direct deps from bundled packages)
 - No `lib/` output (`IncludeBuildOutput=false` by default)
 - Works with class libraries, console apps, and Azure Functions source projects
 
@@ -61,30 +61,33 @@ dotnet pack -c Release -- /m:1
 
 ## SourcePackBundle
 
-Re-export source and build assets from a restored dependency package into your nupkg (meta-packages / vendoring).
+Re-export source and build assets from a restored dependency package into your nupkg (meta-packages / vendoring), and promote that package's **direct** NuGet dependencies into your packed nuspec.
 
-Add a matching `PackageReference` (with `GeneratePathProperty="true"` recommended). Bundle paths are resolved from `project.assets.json`, so central package management works without `Version` on the reference:
+Declare a matching `PackageReference` so NuGet can restore the package (version via CPM `PackageVersion` or `Version` / `VersionOverride`). When a `SourcePackBundle` matches that id, SourcePack applies `PrivateAssets="all"`, `GeneratePathProperty="true"`, and `Pack="false"` if those are unset:
 
 ```xml
-<PackageReference Include="Devlead.SourcePack.Sample"
-                 PrivateAssets="all"
-                 GeneratePathProperty="true"
-                 Pack="false" />
+<!-- CPM: PackageVersion Include="Devlead.Console" in Directory.Packages.props -->
+<PackageReference Include="Devlead.Console" />
 
-<SourcePackBundle Include="Devlead.SourcePack.Sample"
-                  PackagePathPrefix="Devlead/Bundled" />
+<SourcePackBundle Include="Devlead.Console"
+                  PackagePathPrefix="Devlead/Advanced" />
 ```
 
-| Metadata              | Default | Description                                                       |
-|-----------------------|---------|-------------------------------------------------------------------|
-| `PackagePathPrefix`   | *(empty)* | Prefix under `contentFiles/cs/{tfm}/` for bundled `.cs` files |
-| `IncludeBuildAssets`  | `true`  | Copy `build/{tfm}/*.props` and `*.targets` from the dependency    |
-| `PackagePathProperty` | `Pkg{Id}` | Override the `Pkg...` MSBuild property name (rarely needed)   |
+By default, the bundled package's **direct** NuGet dependencies are promoted into this package's nuspec (for example `Spectre.Console.Cli` and `Microsoft.Extensions.Logging.Console` when bundling `Devlead.Console`). The bundled package id itself is not listed as a dependency (`Pack="false"`). Set `PromoteDependencies="false"` to skip promotion.
 
-Example output paths when bundling `Devlead.SourcePack.Sample` with prefix `Devlead/Bundled`:
+| Metadata              | Default   | Description                                                                         |
+|-----------------------|-----------|-------------------------------------------------------------------------------------|
+| `PackagePathPrefix`   | *(empty)* | Prefix under `contentFiles/cs/{tfm}/` for bundled `.cs` files                       |
+| `IncludeBuildAssets`  | `true`    | Copy `build/{tfm}/*.props` and `*.targets` from the dependency                      |
+| `PromoteDependencies` | `true`    | Promote the bundled package's direct NuGet dependencies into this package's nuspec  |
+| `PackagePathProperty` | `Pkg{Id}` | Override the `Pkg...` MSBuild property name (rarely needed)                         |
 
-- `contentFiles/cs/net8.0/Devlead/Bundled/Devlead/Sample/SampleService.cs`
-- `build/net8.0/Devlead.SourcePack.Sample.props`
+Example output paths when bundling `Devlead.Console` with prefix `Devlead/Advanced`:
+
+- `contentFiles/cs/net8.0/Devlead/Advanced/Devlead/Console/Program.cs`
+- `build/net8.0/Devlead.Console.props`
+
+See `src/Devlead.SourcePack.Sample.Advanced` for a full in-repo example.
 
 ## SourcePackFile kinds
 
@@ -102,7 +105,7 @@ dotnet run --file cake.cs
 
 ## Example projects
 
-- [Devlead.Console](https://github.com/devlead/Devlead.Console)
+- [Devlead.Console](https://github.com/devlead/Devlead.Console) (also bundled as an example by `Devlead.SourcePack.Sample.Advanced`)
 - [Devlead.Testing.MockHttp](https://github.com/devlead/Devlead.Testing.MockHttp)
 
 ## License

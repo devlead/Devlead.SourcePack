@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <RootNamespace>Devlead.Advanced</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <SourcePackRoot>Devlead/Advanced</SourcePackRoot>
+    <SourcePackIncludeGeneratedUsings>false</SourcePackIncludeGeneratedUsings>
+    <PackageId>Devlead.SourcePack.Sample.Advanced</PackageId>
+    <PackageDescription>Sample source package that bundles Devlead.Console via SourcePackBundle and promotes its direct dependencies.</PackageDescription>
+    <DevleadSourcePackVersion Condition="'$(DevleadSourcePackVersion)' == ''">2026.7.14.33</DevleadSourcePackVersion>
+    <UseDefaultProgram>false</UseDefaultProgram>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Devlead.SourcePack" VersionOverride="$(DevleadSourcePackVersion)" PrivateAssets="all" />
+    <!-- Matching PackageReference required for restore; Pack=false so Console is not a consumer dependency (sources are vendored). -->
+    <PackageReference Include="Devlead.Console" Pack="false" PrivateAssets="all" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SourcePackBundle Include="Devlead.Console" PackagePathPrefix="Devlead/Advanced" />
+  </ItemGroup>
+
+</Project>

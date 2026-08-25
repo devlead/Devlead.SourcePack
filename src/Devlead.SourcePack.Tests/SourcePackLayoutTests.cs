@@ -75,10 +75,10 @@ public sealed class SourcePackLayoutTests
     }
 
     /// <summary>
-    /// Packing the bundle sample re-exports dependency contentFiles and build assets.
+    /// Packing the bundle sample re-exports dependency content and promotes direct dependencies.
     /// </summary>
     [Fact]
-    public void Pack_bundle_sample_includes_bundled_dependency_content()
+    public void Pack_bundle_sample_includes_content_and_promotes_direct_dependencies()
     {
         var output = PackBundleSamplePackage();
         var entries = ReadZipEntries(output);
@@ -88,6 +88,28 @@ public sealed class SourcePackLayoutTests
         Assert.Contains(entries, path => path.Equals("contentFiles/cs/net10.0/Devlead/Bundled/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("build/net8.0/Devlead.SourcePack.Sample.props", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("build/net10.0/Devlead.SourcePack.Sample.targets", StringComparison.OrdinalIgnoreCase));
+
+        var nuspecPath = ExtractNuspec(output);
+        var document = XDocument.Load(nuspecPath);
+        XNamespace ns = document.Root?.Name.Namespace ?? XNamespace.None;
+
+        var dependencyIds = document
+            .Descendants(ns + "dependency")
+            .Select(dependency => dependency.Attribute("id")!.Value)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        Assert.Contains("Microsoft.Extensions.Logging.Abstractions", dependencyIds);
+        Assert.DoesNotContain("Devlead.SourcePack.Sample", dependencyIds);
+
+        var dependencyGroups = document
+            .Descendants(ns + "group")
+            .Where(group => group.Attribute("targetFramework") != null)
+            .Select(group => group.Attribute("targetFramework")!.Value)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        Assert.Contains("net8.0", dependencyGroups);
+        Assert.Contains("net9.0", dependencyGroups);
+        Assert.Contains("net10.0", dependencyGroups);
     }
 
     private static string PackBundleSamplePackage()
@@ -110,21 +132,38 @@ public sealed class SourcePackLayoutTests
 
         var version = "0.0.0-bundle-test";
         var sourcePackProject = Path.Combine(RepositoryRoot, "src", "Devlead.SourcePack", "Devlead.SourcePack.csproj");
+        var tasksProject = Path.Combine(RepositoryRoot, "src", "Devlead.SourcePack.Tasks", "Devlead.SourcePack.Tasks.csproj");
         var sampleProject = Path.Combine(RepositoryRoot, "src", "Devlead.SourcePack.Sample", "Devlead.SourcePack.Sample.csproj");
         var bundleProject = Path.Combine(RepositoryRoot, "src", "Devlead.SourcePack.Bundle.Sample", "Devlead.SourcePack.Bundle.Sample.csproj");
         var nugetPackagePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             ".nuget",
             "packages");
-
-        foreach (var packageId in new[] { "devlead.sourcepack", "devlead.sourcepack.sample", "devlead.sourcepack.bundle.sample" })
+        var configuredPackagesPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+        var packageCacheRoots = new List<string> { nugetPackagePath };
+        if (!string.IsNullOrWhiteSpace(configuredPackagesPath))
         {
-            var packagePath = Path.Combine(nugetPackagePath, packageId, version);
-            if (Directory.Exists(packagePath))
+            packageCacheRoots.Add(configuredPackagesPath);
+        }
+
+        foreach (var cacheRoot in packageCacheRoots.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            foreach (var packageId in new[] { "devlead.sourcepack", "devlead.sourcepack.sample", "devlead.sourcepack.bundle.sample" })
             {
-                Directory.Delete(packagePath, recursive: true);
+                var packagePath = Path.Combine(cacheRoot, packageId, version);
+                if (Directory.Exists(packagePath))
+                {
+                    Directory.Delete(packagePath, recursive: true);
+                }
             }
         }
+
+        RunDotNet([
+            "build", tasksProject,
+            "-c", "Release",
+            "/p:TreatWarningsAsErrors=false",
+            "--verbosity", "quiet"
+        ]);
 
         RunDotNet([
             "pack", sourcePackProject,
@@ -213,10 +252,19 @@ public sealed class SourcePackLayoutTests
             "packages",
             "devlead.sourcepack",
             version);
-
-        if (Directory.Exists(nugetPackagePath))
+        var configuredPackagesPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+        var packagePaths = new List<string> { nugetPackagePath };
+        if (!string.IsNullOrWhiteSpace(configuredPackagesPath))
         {
-            Directory.Delete(nugetPackagePath, recursive: true);
+            packagePaths.Add(Path.Combine(configuredPackagesPath, "devlead.sourcepack", version));
+        }
+
+        foreach (var packagePath in packagePaths.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            if (Directory.Exists(packagePath))
+            {
+                Directory.Delete(packagePath, recursive: true);
+            }
         }
 
         RunDotNet([
