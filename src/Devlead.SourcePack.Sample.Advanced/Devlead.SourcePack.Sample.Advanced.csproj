@@ -8,7 +8,7 @@
     <SourcePackIncludeGeneratedUsings>false</SourcePackIncludeGeneratedUsings>
     <PackageId>Devlead.SourcePack.Sample.Advanced</PackageId>
     <PackageDescription>Sample source package that bundles Devlead.Console via SourcePackBundle and promotes its direct dependencies.</PackageDescription>
-    <DevleadSourcePackVersion Condition="'$(DevleadSourcePackVersion)' == ''">2026.7.14.33</DevleadSourcePackVersion>
+    <DevleadSourcePackVersion Condition="'$(DevleadSourcePackVersion)' == ''">2026.8.25.55</DevleadSourcePackVersion>
     <UseDefaultProgram>false</UseDefaultProgram>
   </PropertyGroup>
 
