@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Microsoft.Build.Framework" Version="18.10.1" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.9.6" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.10.1" />
     <PackageVersion Include="System.Text.Json" Version="10.0.12" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
     <PackageVersion Include="Devlead.Console" Version="2026.9.9.890" />
