@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using Xunit;
 
@@ -25,8 +26,10 @@ public sealed class SourcePackLayoutTests
         Assert.Contains(entries, path => path.Equals("contentFiles/cs/net8.0/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("contentFiles/cs/net9.0/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("contentFiles/cs/net10.0/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(entries, path => path.Equals("contentFiles/cs/net11.0/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("build/net8.0/Devlead.SourcePack.Sample.props", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("build/net10.0/Devlead.SourcePack.Sample.targets", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(entries, path => path.Equals("build/net11.0/Devlead.SourcePack.Sample.targets", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("README.md", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(entries, path => path.Contains("/obj/", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(entries, path => path.StartsWith("lib/", StringComparison.OrdinalIgnoreCase));
@@ -72,6 +75,7 @@ public sealed class SourcePackLayoutTests
         Assert.Contains("net8.0", dependencyGroups);
         Assert.Contains("net9.0", dependencyGroups);
         Assert.Contains("net10.0", dependencyGroups);
+        Assert.Contains("net11.0", dependencyGroups);
     }
 
     /// <summary>
@@ -86,8 +90,10 @@ public sealed class SourcePackLayoutTests
         Assert.Contains(entries, path => path.Equals("contentFiles/cs/net8.0/Devlead/Bundle/BundleMarker.cs", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("contentFiles/cs/net8.0/Devlead/Bundled/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("contentFiles/cs/net10.0/Devlead/Bundled/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(entries, path => path.Equals("contentFiles/cs/net11.0/Devlead/Bundled/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("build/net8.0/Devlead.SourcePack.Sample.props", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("build/net10.0/Devlead.SourcePack.Sample.targets", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(entries, path => path.Equals("build/net11.0/Devlead.SourcePack.Sample.targets", StringComparison.OrdinalIgnoreCase));
 
         var nuspecPath = ExtractNuspec(output);
         var document = XDocument.Load(nuspecPath);
@@ -110,21 +116,19 @@ public sealed class SourcePackLayoutTests
         Assert.Contains("net8.0", dependencyGroups);
         Assert.Contains("net9.0", dependencyGroups);
         Assert.Contains("net10.0", dependencyGroups);
+        Assert.Contains("net11.0", dependencyGroups);
     }
 
-    private static string PackBundleSamplePackage()
+    private static string PackBundleSamplePackage([CallerMemberName] string testName = "")
     {
-        if (Directory.Exists(ArtifactsRoot))
-        {
-            Directory.Delete(ArtifactsRoot, recursive: true);
-        }
+        var outputRoot = CreateIsolatedOutputRoot(testName);
+        var packagesPath = Path.Combine(outputRoot, "packages");
+        var feed = Path.Combine(outputRoot, "bundle-feed");
+        var sourcePackOutput = Path.Combine(outputRoot, "sourcepack");
+        var sampleOutput = Path.Combine(outputRoot, "sample");
+        var bundleOutput = Path.Combine(outputRoot, "bundle-sample");
 
-        Directory.CreateDirectory(ArtifactsRoot);
-        var feed = Path.Combine(ArtifactsRoot, "bundle-feed");
-        var sourcePackOutput = Path.Combine(ArtifactsRoot, "sourcepack");
-        var sampleOutput = Path.Combine(ArtifactsRoot, "sample");
-        var bundleOutput = Path.Combine(ArtifactsRoot, "bundle-sample");
-
+        Directory.CreateDirectory(packagesPath);
         Directory.CreateDirectory(feed);
         Directory.CreateDirectory(sourcePackOutput);
         Directory.CreateDirectory(sampleOutput);
@@ -135,51 +139,35 @@ public sealed class SourcePackLayoutTests
         var tasksProject = Path.Combine(RepositoryRoot, "src", "Devlead.SourcePack.Tasks", "Devlead.SourcePack.Tasks.csproj");
         var sampleProject = Path.Combine(RepositoryRoot, "src", "Devlead.SourcePack.Sample", "Devlead.SourcePack.Sample.csproj");
         var bundleProject = Path.Combine(RepositoryRoot, "src", "Devlead.SourcePack.Bundle.Sample", "Devlead.SourcePack.Bundle.Sample.csproj");
-        var nugetPackagePath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            ".nuget",
-            "packages");
-        var configuredPackagesPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
-        var packageCacheRoots = new List<string> { nugetPackagePath };
-        if (!string.IsNullOrWhiteSpace(configuredPackagesPath))
-        {
-            packageCacheRoots.Add(configuredPackagesPath);
-        }
 
-        foreach (var cacheRoot in packageCacheRoots.Distinct(StringComparer.OrdinalIgnoreCase))
-        {
-            foreach (var packageId in new[] { "devlead.sourcepack", "devlead.sourcepack.sample", "devlead.sourcepack.bundle.sample" })
-            {
-                var packagePath = Path.Combine(cacheRoot, packageId, version);
-                if (Directory.Exists(packagePath))
-                {
-                    Directory.Delete(packagePath, recursive: true);
-                }
-            }
-        }
+        RunDotNet(
+            packagesPath,
+            [
+                "build", tasksProject,
+                "-c", "Release",
+                "/p:TreatWarningsAsErrors=false",
+                "-nodeReuse:false",
+                "--verbosity", "quiet"
+            ]);
 
-        RunDotNet([
-            "build", tasksProject,
-            "-c", "Release",
-            "/p:TreatWarningsAsErrors=false",
-            "--verbosity", "quiet"
-        ]);
-
-        RunDotNet([
-            "pack", sourcePackProject,
-            "-c", "Release",
-            "-o", sourcePackOutput,
-            $"/p:PackageVersion={version}",
-            "/p:TreatWarningsAsErrors=false",
-            "--verbosity", "quiet"
-        ]);
+        RunDotNet(
+            packagesPath,
+            [
+                "pack", sourcePackProject,
+                "-c", "Release",
+                "-o", sourcePackOutput,
+                $"/p:PackageVersion={version}",
+                "/p:TreatWarningsAsErrors=false",
+                "-nodeReuse:false",
+                "--verbosity", "quiet"
+            ]);
 
         foreach (var package in Directory.GetFiles(sourcePackOutput, "Devlead.SourcePack.*.nupkg"))
         {
             File.Copy(package, Path.Combine(feed, Path.GetFileName(package)), overwrite: true);
         }
 
-        var nugetConfig = Path.Combine(ArtifactsRoot, "bundle-nuget.config");
+        var nugetConfig = Path.Combine(outputRoot, "bundle-nuget.config");
         File.WriteAllText(nugetConfig,
             $"""
             <?xml version="1.0" encoding="utf-8"?>
@@ -192,53 +180,56 @@ public sealed class SourcePackLayoutTests
             </configuration>
             """);
 
-        RunDotNet([
-            "pack", sampleProject,
-            "-c", "Release",
-            "--configfile", nugetConfig,
-            $"/p:DevleadSourcePackVersion={version}",
-            "-o", sampleOutput,
-            $"/p:PackageVersion={version}",
-            "/p:TreatWarningsAsErrors=false",
-            "--",
-            "/m:1",
-            "--verbosity", "quiet"
-        ]);
+        RunDotNet(
+            packagesPath,
+            [
+                "pack", sampleProject,
+                "-c", "Release",
+                "--configfile", nugetConfig,
+                $"/p:DevleadSourcePackVersion={version}",
+                "-o", sampleOutput,
+                $"/p:PackageVersion={version}",
+                "/p:TreatWarningsAsErrors=false",
+                "--",
+                "/m:1",
+                "-nodeReuse:false",
+                "--verbosity", "quiet"
+            ]);
 
         foreach (var package in Directory.GetFiles(sampleOutput, "*.nupkg"))
         {
             File.Copy(package, Path.Combine(feed, Path.GetFileName(package)), overwrite: true);
         }
 
-        RunDotNet([
-            "pack", bundleProject,
-            "-c", "Release",
-            "--configfile", nugetConfig,
-            $"/p:DevleadSourcePackVersion={version}",
-            $"/p:DevleadSourcePackSampleVersion={version}",
-            "-o", bundleOutput,
-            $"/p:PackageVersion={version}",
-            "/p:TreatWarningsAsErrors=false",
-            "--",
-            "/m:1",
-            "--verbosity", "quiet"
-        ]);
+        RunDotNet(
+            packagesPath,
+            [
+                "pack", bundleProject,
+                "-c", "Release",
+                "--configfile", nugetConfig,
+                $"/p:DevleadSourcePackVersion={version}",
+                $"/p:DevleadSourcePackSampleVersion={version}",
+                "-o", bundleOutput,
+                $"/p:PackageVersion={version}",
+                "/p:TreatWarningsAsErrors=false",
+                "--",
+                "/m:1",
+                "-nodeReuse:false",
+                "--verbosity", "quiet"
+            ]);
 
         return Directory.GetFiles(bundleOutput, "Devlead.SourcePack.Bundle.Sample.*.nupkg").Single();
     }
 
-    private static string PackSamplePackage()
+    private static string PackSamplePackage([CallerMemberName] string testName = "")
     {
-        if (Directory.Exists(ArtifactsRoot))
-        {
-            Directory.Delete(ArtifactsRoot, recursive: true);
-        }
+        var outputRoot = CreateIsolatedOutputRoot(testName);
+        var packagesPath = Path.Combine(outputRoot, "packages");
+        var feed = Path.Combine(outputRoot, "feed");
+        var sourcePackOutput = Path.Combine(outputRoot, "sourcepack");
+        var sampleOutput = Path.Combine(outputRoot, "sample");
 
-        Directory.CreateDirectory(ArtifactsRoot);
-        var feed = Path.Combine(ArtifactsRoot, "feed");
-        var sourcePackOutput = Path.Combine(ArtifactsRoot, "sourcepack");
-        var sampleOutput = Path.Combine(ArtifactsRoot, "sample");
-
+        Directory.CreateDirectory(packagesPath);
         Directory.CreateDirectory(feed);
         Directory.CreateDirectory(sourcePackOutput);
         Directory.CreateDirectory(sampleOutput);
@@ -246,40 +237,23 @@ public sealed class SourcePackLayoutTests
         var version = "0.0.0-test";
         var sourcePackProject = Path.Combine(RepositoryRoot, "src", "Devlead.SourcePack", "Devlead.SourcePack.csproj");
         var sampleProject = Path.Combine(RepositoryRoot, "src", "Devlead.SourcePack.Sample", "Devlead.SourcePack.Sample.csproj");
-        var nugetPackagePath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            ".nuget",
-            "packages",
-            "devlead.sourcepack",
-            version);
-        var configuredPackagesPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
-        var packagePaths = new List<string> { nugetPackagePath };
-        if (!string.IsNullOrWhiteSpace(configuredPackagesPath))
-        {
-            packagePaths.Add(Path.Combine(configuredPackagesPath, "devlead.sourcepack", version));
-        }
 
-        foreach (var packagePath in packagePaths.Distinct(StringComparer.OrdinalIgnoreCase))
-        {
-            if (Directory.Exists(packagePath))
-            {
-                Directory.Delete(packagePath, recursive: true);
-            }
-        }
-
-        RunDotNet([
-            "pack", sourcePackProject,
-            "-c", "Release",
-            "-o", sourcePackOutput,
-            $"/p:PackageVersion={version}",
-            "/p:TreatWarningsAsErrors=false",
-            "--verbosity", "quiet"
-        ]);
+        RunDotNet(
+            packagesPath,
+            [
+                "pack", sourcePackProject,
+                "-c", "Release",
+                "-o", sourcePackOutput,
+                $"/p:PackageVersion={version}",
+                "/p:TreatWarningsAsErrors=false",
+                "-nodeReuse:false",
+                "--verbosity", "quiet"
+            ]);
 
         var sourcePackPackage = Directory.GetFiles(sourcePackOutput, "Devlead.SourcePack.*.nupkg").Single();
         File.Copy(sourcePackPackage, Path.Combine(feed, Path.GetFileName(sourcePackPackage)), overwrite: true);
 
-        var nugetConfig = Path.Combine(ArtifactsRoot, "nuget.config");
+        var nugetConfig = Path.Combine(outputRoot, "nuget.config");
         File.WriteAllText(nugetConfig,
             $"""
             <?xml version="1.0" encoding="utf-8"?>
@@ -292,18 +266,21 @@ public sealed class SourcePackLayoutTests
             </configuration>
             """);
 
-        RunDotNet([
-            "pack", sampleProject,
-            "-c", "Release",
-            "--configfile", nugetConfig,
-            $"/p:DevleadSourcePackVersion={version}",
-            "-o", sampleOutput,
-            $"/p:PackageVersion={version}",
-            "/p:TreatWarningsAsErrors=false",
-            "--",
-            "/m:1",
-            "--verbosity", "quiet"
-        ]);
+        RunDotNet(
+            packagesPath,
+            [
+                "pack", sampleProject,
+                "-c", "Release",
+                "--configfile", nugetConfig,
+                $"/p:DevleadSourcePackVersion={version}",
+                "-o", sampleOutput,
+                $"/p:PackageVersion={version}",
+                "/p:TreatWarningsAsErrors=false",
+                "--",
+                "/m:1",
+                "-nodeReuse:false",
+                "--verbosity", "quiet"
+            ]);
 
         return Directory.GetFiles(sampleOutput, "Devlead.SourcePack.Sample.*.nupkg").Single();
     }
@@ -316,18 +293,57 @@ public sealed class SourcePackLayoutTests
 
     private static string ExtractNuspec(string packagePath)
     {
-        var extractPath = Path.Combine(ArtifactsRoot, "nuspec");
-        if (Directory.Exists(extractPath))
-        {
-            Directory.Delete(extractPath, recursive: true);
-        }
-
+        var extractPath = Path.Combine(Path.GetDirectoryName(packagePath)!, "nuspec");
+        DeleteDirectory(extractPath);
         Directory.CreateDirectory(extractPath);
         ZipFile.ExtractToDirectory(packagePath, extractPath);
         return Directory.GetFiles(extractPath, "*.nuspec", SearchOption.AllDirectories).Single();
     }
 
-    private static void RunDotNet(IReadOnlyList<string> arguments)
+    private static string CreateIsolatedOutputRoot(string testName)
+    {
+        var outputRoot = Path.Combine(ArtifactsRoot, testName);
+        DeleteDirectory(outputRoot);
+        Directory.CreateDirectory(outputRoot);
+        return outputRoot;
+    }
+
+    private static void DeleteDirectory(string path)
+    {
+        if (!Directory.Exists(path))
+        {
+            return;
+        }
+
+        const int maxAttempts = 10;
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                ClearReadOnlyAttributes(path);
+                Directory.Delete(path, recursive: true);
+                return;
+            }
+            catch (Exception ex) when ((ex is UnauthorizedAccessException or IOException) && attempt < maxAttempts)
+            {
+                Thread.Sleep(TimeSpan.FromMilliseconds(100 * attempt));
+            }
+        }
+    }
+
+    private static void ClearReadOnlyAttributes(string path)
+    {
+        foreach (var filePath in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+        {
+            var attributes = File.GetAttributes(filePath);
+            if ((attributes & FileAttributes.ReadOnly) != 0)
+            {
+                File.SetAttributes(filePath, attributes & ~FileAttributes.ReadOnly);
+            }
+        }
+    }
+
+    private static void RunDotNet(string packagesPath, IReadOnlyList<string> arguments)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -337,6 +353,10 @@ public sealed class SourcePackLayoutTests
             RedirectStandardError = true,
             UseShellExecute = false
         };
+
+        startInfo.Environment["NUGET_PACKAGES"] = packagesPath;
+        startInfo.Environment["MSBUILDDISABLENODEREUSE"] = "1";
+        startInfo.Environment["DOTNET_CLI_DO_NOT_USE_MSBUILD_SERVER"] = "1";
 
         foreach (var argument in arguments)
         {
