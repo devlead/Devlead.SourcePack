@@ -7,6 +7,7 @@
     <IsTestProject>true</IsTestProject>
     <RootNamespace>Devlead.SourcePack.Tests</RootNamespace>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
   </PropertyGroup>
 
   <ItemGroup>
