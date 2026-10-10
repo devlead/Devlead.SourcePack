@@ -1,5 +1,7 @@
 # Devlead.SourcePack
 
+[![NuGet](https://img.shields.io/nuget/v/Devlead.SourcePack.svg)](https://www.nuget.org/packages/Devlead.SourcePack)
+
 Opinionated MSBuild package for authoring **source NuGet packages** using standard SDK `dotnet pack`.
 
 ## Features
