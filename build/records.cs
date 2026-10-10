@@ -6,6 +6,8 @@ public record BuildData(
     bool IsMainBranch,
     bool ShouldNotPublish,
     bool IsLocalBuild,
+    bool IsRunningOnGitHubActions,
+    string? WorkflowRef,
     DirectoryPath ProjectRoot,
     FilePath ProjectPath,
     FilePath SampleProjectPath,
@@ -39,7 +41,14 @@ public record BuildData(
                                             && !string.IsNullOrWhiteSpace(GitHubNuGetApiKey);
 
     public string? NuGetSource { get; } = System.Environment.GetEnvironmentVariable("NUGET_SOURCE");
-    public string? NuGetApiKey { get; } = System.Environment.GetEnvironmentVariable("NUGET_APIKEY");
+    public string? NuGetApiUser { get; } = System.Environment.GetEnvironmentVariable("NUGET_USER");
+    public string? NuGetApiKey { get; set; } = System.Environment.GetEnvironmentVariable("NUGET_APIKEY");
+
+    public bool ShouldLoginNuGet() =>
+        !ShouldNotPublish
+        && IsRunningOnGitHubActions
+        && (IsMainBranch
+            || (WorkflowRef?.StartsWith("refs/tags/v", StringComparison.Ordinal) ?? false));
 
     /// <summary>
     /// Whether nuget.org push should run.
