@@ -23,11 +23,9 @@ public sealed class SourcePackLayoutTests
         var output = PackSamplePackage();
         var entries = ReadZipEntries(output);
 
-        Assert.Contains(entries, path => path.Equals("contentFiles/cs/net8.0/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(entries, path => path.Equals("contentFiles/cs/net9.0/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("contentFiles/cs/net10.0/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("contentFiles/cs/net11.0/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(entries, path => path.Equals("build/net8.0/Devlead.SourcePack.Sample.props", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(entries, path => path.Equals("build/net10.0/Devlead.SourcePack.Sample.props", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("build/net10.0/Devlead.SourcePack.Sample.targets", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("build/net11.0/Devlead.SourcePack.Sample.targets", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("README.md", StringComparison.OrdinalIgnoreCase));
@@ -72,8 +70,6 @@ public sealed class SourcePackLayoutTests
             .Select(group => group.Attribute("targetFramework")!.Value)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        Assert.Contains("net8.0", dependencyGroups);
-        Assert.Contains("net9.0", dependencyGroups);
         Assert.Contains("net10.0", dependencyGroups);
         Assert.Contains("net11.0", dependencyGroups);
     }
@@ -87,11 +83,10 @@ public sealed class SourcePackLayoutTests
         var output = PackBundleSamplePackage();
         var entries = ReadZipEntries(output);
 
-        Assert.Contains(entries, path => path.Equals("contentFiles/cs/net8.0/Devlead/Bundle/BundleMarker.cs", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(entries, path => path.Equals("contentFiles/cs/net8.0/Devlead/Bundled/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(entries, path => path.Equals("contentFiles/cs/net10.0/Devlead/Bundle/BundleMarker.cs", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("contentFiles/cs/net10.0/Devlead/Bundled/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("contentFiles/cs/net11.0/Devlead/Bundled/Devlead/Sample/SampleService.cs", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(entries, path => path.Equals("build/net8.0/Devlead.SourcePack.Sample.props", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(entries, path => path.Equals("build/net10.0/Devlead.SourcePack.Sample.props", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("build/net10.0/Devlead.SourcePack.Sample.targets", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(entries, path => path.Equals("build/net11.0/Devlead.SourcePack.Sample.targets", StringComparison.OrdinalIgnoreCase));
 
@@ -113,8 +108,6 @@ public sealed class SourcePackLayoutTests
             .Select(group => group.Attribute("targetFramework")!.Value)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        Assert.Contains("net8.0", dependencyGroups);
-        Assert.Contains("net9.0", dependencyGroups);
         Assert.Contains("net10.0", dependencyGroups);
         Assert.Contains("net11.0", dependencyGroups);
     }
