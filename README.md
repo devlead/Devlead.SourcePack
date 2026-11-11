@@ -25,7 +25,7 @@ Add a development dependency to the project you want to pack:
 
 ```xml
 <PropertyGroup>
-  <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+  <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
   <SourcePackRoot>Devlead/MyPackage</SourcePackRoot>
   <IsPackable>true</IsPackable>
 </PropertyGroup>
@@ -86,8 +86,8 @@ By default, the bundled package's **direct** NuGet dependencies are promoted int
 
 Example output paths when bundling `Devlead.Console` with prefix `Devlead/Advanced`:
 
-- `contentFiles/cs/net8.0/Devlead/Advanced/Devlead/Console/Program.cs`
-- `build/net8.0/Devlead.Console.props`
+- `contentFiles/cs/net10.0/Devlead/Advanced/Devlead/Console/Program.cs`
+- `build/net10.0/Devlead.Console.props`
 
 See `src/Devlead.SourcePack.Sample.Advanced` for a full in-repo example.
 
